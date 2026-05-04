@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request,HTTPException
+from fastapi import FastAPI, Request, HTTPException
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from googletrans import Translator
@@ -6,18 +6,24 @@ from nltk.stem import PorterStemmer
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.neighbors import NearestNeighbors
-from geopy.geocoders import Nominatim
-# from sklearn.neighbors import NearestNeighbors
 from sklearn.feature_extraction.text import TfidfVectorizer
+from geopy.geocoders import Nominatim
 import pandas as pd
 import numpy as np
 import ast
 import uuid
 import uvicorn
 import json
-from sentence_transformers import SentenceTransformer
+import os
+import nltk
+
 from gemini import get_field_weights
-#Initialize FastAPI app
+
+# ─── Download NLTK data if missing ──────────────────────────────────────────
+nltk.download('punkt', quiet=True)
+nltk.download('stopwords', quiet=True)
+
+# ─── Initialize FastAPI app ──────────────────────────────────────────────────
 app = FastAPI()
 translator = Translator()
 
@@ -29,6 +35,14 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# ─── Lazy-loaded globals (populated on startup) ──────────────────────────────
+data = None
+new_df = None
+similarity = None
+cv = None
+model = None      # SentenceTransformer — loaded on startup to avoid OOM at build time
+raw_jobs = None
 
 # ========== Data Loading and Preprocessing ========== #
 
@@ -77,8 +91,24 @@ def preprocess():
     similarity = cosine_similarity(vector)
     return df, new_df, similarity, cv
 
-# Load initial data
-data, new_df, similarity, cv = preprocess()
+# ─── Startup event: load all heavy resources once the server is running ───────
+@app.on_event("startup")
+async def startup_event():
+    global data, new_df, similarity, cv, model, raw_jobs
+
+    print("Loading CSV data and preprocessing...")
+    data, new_df, similarity, cv = preprocess()
+    print("CSV data loaded.")
+
+    print("Loading SentenceTransformer model...")
+    from sentence_transformers import SentenceTransformer
+    model = SentenceTransformer("all-MiniLM-L6-v2")
+    print("Model loaded.")
+
+    print("Loading joblist.json...")
+    with open("joblist.json", "r", encoding="utf-8") as f:
+        raw_jobs = json.load(f)
+    print("joblist.json loaded.")
 
 # Allowed cities and coordinates
 ALLOWED_CITIES = {"Bangalore", "Mysore", "Mumbai", "Pune", "Delhi", "Lucknow", "Ahmedabad"}
@@ -106,7 +136,14 @@ class JobInput(BaseModel):
     maxSalary: int
     description: str
 
+class TextRecommendRequest(BaseModel):
+    query: str
+
 # ========== Endpoints ========== #
+
+@app.get("/health")
+async def health():
+    return {"status": "ok"}
 
 @app.post("/add-job")
 async def add_job(job: JobInput):
@@ -137,52 +174,6 @@ async def add_job(job: JobInput):
     data, new_df, similarity, cv = preprocess()
     return {"status": "Job added"}
 
-
-# @app.post("/recommends")
-# async def recommend_endpoint(req: RecommendRequest):
-#     title = req.title
-#     city = req.city
-
-#     geolocator = Nominatim(user_agent="job_recommender")
-#     location = geolocator.geocode(city)
-
-#     if not location:
-#         return {"message": "Invalid city name."}
-
-#     user_location = np.radians([[location.latitude, location.longitude]])
-
-#     # Step 1: Try to find jobs with similar title
-#     index = new_df[new_df['title'].str.contains(title, case=False, na=False)].index
-
-#     if len(index) > 0:
-#         distances = sorted(list(enumerate(similarity[index[0]])), reverse=True, key=lambda x: x[1])
-#         rec_list = []
-#         for i, _ in distances[1:100]:
-#             rec_list.append({
-#                 'jobId': new_df.iloc[i].jobId,
-#                 'latitude': new_df.iloc[i]['latitude'],
-#                 'longitude': new_df.iloc[i]['longitude'],
-#                 'title': new_df.iloc[i]['title']
-#             })
-
-#         rec_df = pd.DataFrame(rec_list)
-#         if not rec_df.empty:
-#             job_locations = np.radians(rec_df[['latitude', 'longitude']].to_numpy())
-#             nbrs = NearestNeighbors(n_neighbors=min(20, len(job_locations)), metric="haversine").fit(job_locations)
-#             distances, indices = nbrs.kneighbors(user_location)
-#             within_radius = np.degrees(distances) * 111 <= 500
-#             filtered = indices[0][within_radius[0]]
-#             rec_df = rec_df.iloc[filtered]
-#             return rec_df.head(20)[['jobId']].to_dict(orient="records")
-
-#     # Step 2: If no title match, fallback to any nearby jobs
-#     job_locations_all = np.radians(new_df[['latitude', 'longitude']].to_numpy())
-#     nbrs = NearestNeighbors(n_neighbors=min(50, len(job_locations_all)), metric="haversine").fit(job_locations_all)
-#     distances, indices = nbrs.kneighbors(user_location)
-#     within_radius = np.degrees(distances) * 111 <= 500
-#     filtered_idx = indices[0][within_radius[0]]
-#     fallback_jobs = new_df.iloc[filtered_idx]
-#     return fallback_jobs.head(20)[['jobId']].to_dict(orient="records")
 
 @app.post("/recommends")
 async def recommend_endpoint(req: RecommendRequest):
@@ -248,7 +239,6 @@ def convert_record(record):
     converted = {}
     for key, value in record.items():
         if key == 'salary' and isinstance(value, dict):
-            # Handle salary nested object
             converted[key] = {}
             for salary_key, salary_value in value.items():
                 converted[key][salary_key] = {
@@ -256,7 +246,6 @@ def convert_record(record):
                     "hi": translate_text(str(salary_value) if salary_value is not None else '')
                 }
         elif key == 'location' and isinstance(value, dict):
-            # Handle location nested object
             converted[key] = {}
             for location_key, location_value in value.items():
                 converted[key][location_key] = {
@@ -264,7 +253,6 @@ def convert_record(record):
                     "hi": translate_text(str(location_value) if location_value is not None else '')
                 }
         elif key == 'employer' and isinstance(value, dict):
-            # Handle employer nested object
             converted[key] = {}
             for employer_key, employer_value in value.items():
                 converted[key][employer_key] = {
@@ -272,53 +260,43 @@ def convert_record(record):
                     "hi": translate_text(str(employer_value) if employer_value is not None else '')
                 }
         elif key == 'preferredTime' and isinstance(value, dict):
-    # Flatten preferredTime to preferredTime.start, preferredTime.end
             for time_key, time_value in value.items():
                 new_key = f"{key}.{time_key}"
                 converted[new_key] = {
-                "en": str(time_value) if time_value is not None else '',
-                "hi": translate_text(str(time_value) if time_value is not None else '')
-            }
-
+                    "en": str(time_value) if time_value is not None else '',
+                    "hi": translate_text(str(time_value) if time_value is not None else '')
+                }
         elif key == 'schedule' and isinstance(value, dict):
-            # Handle schedule nested object
             converted[key] = {}
             for schedule_key, schedule_value in value.items():
                 if isinstance(schedule_value, list):
-                    # Handle arrays like 'days'
                     converted[key][schedule_key] = {
                         "en": schedule_value,
                         "hi": [translate_text(str(item)) for item in schedule_value]
                     }
                 else:
-                    # Handle strings like 'shifts'
                     converted[key][schedule_key] = {
                         "en": str(schedule_value) if schedule_value is not None else '',
                         "hi": translate_text(str(schedule_value) if schedule_value is not None else '')
                     }
         elif key in ['tags', 'skills'] and isinstance(value, list):
-            # Handle array fields that need localization
             converted[key] = {
                 "en": value,
                 "hi": [translate_text(str(item)) for item in value]
             }
         elif key in ['jobId', 'recid', 'latitude', 'longitude']:
-            # Handle fields that don't need translation (IDs, coordinates)
             converted[key] = str(value) if value is not None else ''
         elif key in ['vacancies'] and isinstance(value, (int, float)):
-            # Handle numeric fields that need to be stored as localized strings
             converted[key] = {
                 "en": str(value),
-                "hi": str(value)  # Numbers don't need translation
+                "hi": str(value)
             }
         elif key == 'isApplied' and isinstance(value, bool):
-            # Handle boolean fields stored as localized strings
             converted[key] = {
                 "en": str(value).lower(),
-                "hi": str(value).lower()  # Boolean values don't need translation
+                "hi": str(value).lower()
             }
         else:
-            # Handle all other string fields
             converted[key] = {
                 "en": str(value) if value is not None else '',
                 "hi": translate_text(str(value) if value is not None else '')
@@ -332,92 +310,8 @@ async def translate_job(request: Request):
     bilingual_job = convert_record(body)
     return bilingual_job
 
-# ========== text recommendations ========== #
 
-
-
-
-
-# class TextRecommendRequest(BaseModel):
-#     query: str
-
-# # Load model and job data once at startup
-# print("Loading model...")
-# model = SentenceTransformer("all-MiniLM-L6-v2")
-
-# print("Loading jobs...")
-# with open("joblist.json", "r", encoding="utf-8") as f:
-#     raw_jobs = json.load(f)
-
-# def flatten_job_entry(entry):
-#     location = entry.get("location", {})
-#     city = location.get("city", {}).get("en", "")
-#     area = location.get("area", {}).get("en", "")
-
-#     return {
-#         "jobId": int(entry.get("jobId", 0)),
-#         "title": entry.get("title", {}).get("en", ""),
-#         "description": entry.get("description", {}).get("en", ""),
-#         "requirements": entry.get("requirements", {}).get("en", ""),
-#         "type": entry.get("type", {}).get("en", ""),
-#         "category": entry.get("category", {}).get("en", ""),
-#         "duration": entry.get("duration", {}).get("en", ""),
-#         "skills": " ".join(entry.get("skills", {}).get("en", [])),
-#         "tags": " ".join(entry.get("tags", {}).get("en", [])),
-#         "location": f"{city} {area}"
-#     }
-
-# flattened_jobs = [flatten_job_entry(job) for job in raw_jobs]
-
-# # Combine fields into a single string per job
-# def vectorize_job(job):
-#     return " ".join([
-#         job["title"],
-#         job["description"],
-#         job["requirements"],
-#         job["type"],
-#         job["category"],
-#         job["duration"],
-#         job["skills"],
-#         job["tags"],
-#         job["location"]
-#     ])
-
-# corpus = [vectorize_job(job) for job in flattened_jobs]
-
-# # TF-IDF vectorization
-# tfidf_vectorizer = TfidfVectorizer(stop_words='english')
-# job_vectors = tfidf_vectorizer.fit_transform(corpus)
-
-# @app.post("/recommend")
-# def recommend_jobs(req: JobRequest):
-#     if not req.query.strip():
-#         raise HTTPException(status_code=400, detail="Empty query string")
-
-#     query_vec = tfidf_vectorizer.transform([req.query])
-#     similarity_scores = cosine_similarity(query_vec, job_vectors).flatten()
-
-#     threshold = 0.2  # Adjust based on quality
-#     top_indices = similarity_scores.argsort()[::-1]
-#     filtered = [(i, similarity_scores[i]) for i in top_indices if similarity_scores[i] > threshold]
-
-#     if not filtered:
-#         return {"message": "No matching jobs found."}
-
-#     results = [flattened_jobs[i] for i, _ in filtered[:5]]
-#     return results
-
-
-class TextRecommendRequest(BaseModel):
-    query: str
-
-# Load model and job data once at startup
-print("Loading model...")
-model = SentenceTransformer("all-MiniLM-L6-v2")
-
-print("Loading jobs...")
-with open("joblist.json", "r", encoding="utf-8") as f:
-    raw_jobs = json.load(f)
+# ========== Text Recommendations ========== #
 
 def flatten_job_entry(entry):
     return {
@@ -435,7 +329,6 @@ def flatten_job_entry(entry):
         "preferred_end": entry["preferredTime.end"]["en"],
         "city": entry["location"]["city"]["en"],
         "area": entry["location"]["area"]["en"],
-        #"days": eval(entry["schedule.days"]["en"]),
     }
 
 def get_job_text(row, weights):
@@ -450,7 +343,6 @@ def get_job_text(row, weights):
         ("salary.amount", str(row["salary"])),
         ("preferredTime", f"{row['preferred_start']} {row['preferred_end']}"),
         ("location", f"{row['city']} {row['area']}"),
-        #("schedule.days", " ".join(row["days"]))
     ]
     weighted_text = []
     for field, value in fields:
@@ -461,6 +353,8 @@ def get_job_text(row, weights):
 
 @app.post("/recommend_by_text")
 async def recommend_by_text(req: TextRecommendRequest):
+    if model is None or raw_jobs is None:
+        raise HTTPException(status_code=503, detail="Model not yet loaded. Please try again shortly.")
     try:
         query = req.query
         weights = get_field_weights(query)
@@ -479,10 +373,8 @@ async def recommend_by_text(req: TextRecommendRequest):
         return top_job_ids
     except Exception as e:
         return {"error": str(e)}
+
 # ========== Run Server ========== #
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
-
-
-
+    uvicorn.run("main:app", host="0.0.0.0", port=int(os.environ.get("PORT", 8000)), reload=False)

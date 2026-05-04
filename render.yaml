@@ -11,11 +11,11 @@ services:
     plan: free
     envVars:
       - key: MONGODBURL
-        sync: false          # set manually in Render dashboard
+        sync: false
       - key: ML_SERVICE_URL
-        sync: false          # set to the ML service's Render URL after it deploys
+        value: https://partimepal-ml.onrender.com
       - key: FRONTEND_URL
-        sync: false          # set to the frontend's Render URL after it deploys
+        value: https://partimepal-frontend.onrender.com
       - key: NODE_ENV
         value: production
 
@@ -31,7 +31,7 @@ services:
     plan: free
     envVars:
       - key: GEMINI_API_KEY
-        sync: false          # set manually in Render dashboard
+        sync: false
 
   # ──────────────────────────────────────────────────
   # 3. React Frontend (Static Site)
@@ -48,4 +48,4 @@ services:
         destination: /index.html
     envVars:
       - key: VITE_API_URL
-        sync: false          # set to the backend's Render URL after it deploys
+        value: https://partimepal-backend.onrender.com
