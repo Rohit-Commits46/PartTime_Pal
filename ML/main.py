@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Request, HTTPException
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
-from googletrans import Translator
+from deep_translator import GoogleTranslator
 from nltk.stem import PorterStemmer
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
@@ -25,7 +25,6 @@ nltk.download('stopwords', quiet=True)
 
 # ─── Initialize FastAPI app ──────────────────────────────────────────────────
 app = FastAPI()
-translator = Translator()
 
 # CORS
 app.add_middleware(
@@ -96,19 +95,31 @@ def preprocess():
 async def startup_event():
     global data, new_df, similarity, cv, model, raw_jobs
 
-    print("Loading CSV data and preprocessing...")
-    data, new_df, similarity, cv = preprocess()
-    print("CSV data loaded.")
+    try:
+        print("Loading CSV data and preprocessing...")
+        data, new_df, similarity, cv = preprocess()
+        print("CSV data loaded.")
+    except Exception as e:
+        print(f"ERROR loading CSV: {e}")
+        raise
 
-    print("Loading SentenceTransformer model...")
-    from sentence_transformers import SentenceTransformer
-    model = SentenceTransformer("all-MiniLM-L6-v2")
-    print("Model loaded.")
+    try:
+        print("Loading SentenceTransformer model...")
+        from sentence_transformers import SentenceTransformer
+        model = SentenceTransformer("all-MiniLM-L6-v2")
+        print("Model loaded.")
+    except Exception as e:
+        print(f"ERROR loading model: {e}")
+        raise
 
-    print("Loading joblist.json...")
-    with open("joblist.json", "r", encoding="utf-8") as f:
-        raw_jobs = json.load(f)
-    print("joblist.json loaded.")
+    try:
+        print("Loading joblist.json...")
+        with open("joblist.json", "r", encoding="utf-8") as f:
+            raw_jobs = json.load(f)
+        print("joblist.json loaded.")
+    except Exception as e:
+        print(f"ERROR loading joblist.json: {e}")
+        raise
 
 # Allowed cities and coordinates
 ALLOWED_CITIES = {"Bangalore", "Mysore", "Mumbai", "Pune", "Delhi", "Lucknow", "Ahmedabad"}
@@ -229,8 +240,8 @@ def translate_text(text, dest_lang='hi'):
     if text is None or str(text).strip() == '':
         return '' if text is None else str(text)
     try:
-        translated = translator.translate(str(text), dest=dest_lang)
-        return translated.text
+        translated = GoogleTranslator(source='auto', target=dest_lang).translate(str(text))
+        return translated
     except Exception as e:
         print(f"Translation error for '{text}': {e}")
         return str(text)
