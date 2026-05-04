@@ -2,6 +2,8 @@
 const axios = require('axios');
 const {getJobsByIds}= require('../newml/ml');
 
+const ML_SERVICE_URL = process.env.ML_SERVICE_URL || 'http://127.0.0.1:8000';
+
 async function connectML(req, res) {
     const { title, city, salary, job ,lang} = req.body;
 
@@ -13,7 +15,7 @@ async function connectML(req, res) {
 
     try {
         console.log("Sending data to FastAPI service:", dataToSend);
-        const response = await axios.post('http://127.0.0.1:8000/recommends', dataToSend);
+        const response = await axios.post(`${ML_SERVICE_URL}/recommends`, dataToSend);
 
         if (!Array.isArray(response.data)) {
             return res.status(500).json({ message: "Invalid response from ML service." });
@@ -36,18 +38,16 @@ async function connectML(req, res) {
 
 async function getJobsByText(req,res) {
     try {
-        // console.log("Sending data to FastAPI service:", dataToSend);
         const { textosend, language } = req.body;
         console.log(textosend);
         
         var lang = language || 'en'; // Default to English if no language is provided
         var query=textosend || '';
-        const response = await axios.post('http://127.0.0.1:8000/recommend_by_text', { query });
+        const response = await axios.post(`${ML_SERVICE_URL}/recommend_by_text`, { query });
         console.log("ASd");
         
         console.log(response.data);
         
-        // const jobIds = response.data.map(job => job.jobId);
         const jobs = await getJobsByIds(response.data, lang);
 
         if (!jobs || jobs.length === 0) {

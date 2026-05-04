@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+﻿import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
@@ -38,7 +38,7 @@ const JobSeekerForm = () => {
     try {
       console.log("Submitting form data:", formData);
       
-      const res=await axios.post("http://localhost:5000/api/jobseekers", formData);
+      const res=await axios.post("__API_URL__/api/jobseekers", formData);
       console.log(res);
       navigate("/");
     } catch (error) {

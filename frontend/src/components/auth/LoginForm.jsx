@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 import { Lock, Mail } from "lucide-react";
 import { googleAuth } from "../../utils/firebase";
 import { useNavigate } from "react-router-dom";
@@ -47,7 +47,7 @@ const LoginForm = ({ userType, onBack }) => {
     const pic=google.photoURL;
   
     const time=new Date().getTime();
-    const res= await axios.post('http://localhost:5000/auth/login', {
+    const res= await axios.post('__API_URL__/auth/login', {
       name,
       email2,
       // userType,

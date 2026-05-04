@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
@@ -37,7 +37,7 @@ const RecruiterForm = () => {
   
   async function submitForm(){
     try {
-      const res = await axios.post("http://localhost:5000/api/recruiters", formData);
+      const res = await axios.post("__API_URL__/api/recruiters", formData);
       console.log(res);
       navigate("/");
     } catch (error) {

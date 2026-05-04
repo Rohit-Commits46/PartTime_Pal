@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
@@ -49,7 +49,7 @@ const PostJobPage = () => {
   React.useEffect(() => {
     const generateJobId = async () => {
       try {
-        const response = await axios.get("http://localhost:5000/api/postjob/all");
+        const response = await axios.get("__API_URL__/api/postjob/all");
         const total = response.data.total || 0;
         const newJobId = total + 2;
         
@@ -219,7 +219,7 @@ const PostJobPage = () => {
 
   async function handlejobPost() {
     try {
-      const res = await axios.post("http://localhost:5000/api/postjob", {
+      const res = await axios.post("__API_URL__/api/postjob", {
         ...formData,
       });
       console.log(res);

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Edit, User, Mail, Phone, MapPin, Briefcase, Clock } from 'lucide-react';
 import { useAuthstore } from '../../store/useAuthstore';
@@ -33,7 +33,7 @@ const UserProfile = () => {
   async function fetchUserData() {
     try {
      
-    const user1=await axios.get(`http://localhost:5000/api/jobseekers/profile/${id}`); 
+    const user1=await axios.get(`__API_URL__/api/jobseekers/profile/${id}`); 
     console.log(user1.data);
     // setUser(user1.data);  
     } catch (error) {
@@ -43,7 +43,7 @@ const UserProfile = () => {
 
   async function updateUserData() {
     try {
-      const response = await axios.post(`http://localhost:5000/api/jobseekers/profile/${id}`, user);
+      const response = await axios.post(`__API_URL__/api/jobseekers/profile/${id}`, user);
       console.log('User data updated:', response.data);
     } catch (error) {
       console.error('Error updating user data:', error);

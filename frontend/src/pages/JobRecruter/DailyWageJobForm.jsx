@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useAuthstore } from '../../store/useAuthstore';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
@@ -41,7 +41,7 @@ const DailyWageJobForm = () => {
     
     setLoadingApplications(true);
     try {
-      const response = await axios.get(`http://localhost:5000/api/rec/dailywage-applications/${authuser.recid}`);
+      const response = await axios.get(`__API_URL__/api/rec/dailywage-applications/${authuser.recid}`);
       if (response.data && Array.isArray(response.data.applications)) {
         // Get only the 5 most recent applications
         const recent = response.data.applications.slice(0, 5);
@@ -58,7 +58,7 @@ const DailyWageJobForm = () => {
     setProcessing(prev => ({ ...prev, [applicationId]: true }));
     
     try {
-      const response = await axios.put(`http://localhost:5000/api/rec/dailywage-application/${applicationId}`, {
+      const response = await axios.put(`__API_URL__/api/rec/dailywage-application/${applicationId}`, {
         status: action,
         recruiterId: authuser.recid
       });
@@ -121,7 +121,7 @@ const DailyWageJobForm = () => {
       };
       console.log(authuser)
       console.log(payload);
-      const response = await axios.post(`http://localhost:5000/api/rec/dailywages/${authuser.recid}`, payload);
+      const response = await axios.post(`__API_URL__/api/rec/dailywages/${authuser.recid}`, payload);
       console.log(response);
       if (response.data.success) {
         alert('Job posted successfully!');

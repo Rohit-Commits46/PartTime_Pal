@@ -1,4 +1,4 @@
-import  { useState, useEffect } from 'react';
+﻿import  { useState, useEffect } from 'react';
 import { ArrowLeft, Briefcase, Calendar, MapPin, Building, CheckCircle, Clock, XCircle, DollarSign, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthstore } from '../../store/useAuthstore';
@@ -25,12 +25,12 @@ const ApplicationsPage = () => {
           console.log(language)
           
           // Fetch regular job applications
-          const response = await axios.get(`http://localhost:5000/api/jobseekers/applications/${authuser.seekerId}`);
+          const response = await axios.get(`__API_URL__/api/jobseekers/applications/${authuser.seekerId}`);
           console.log('Applications response:', response.data);
           setApplications(response.data.applications || []);
           
           // Fetch daily wage applications
-          const dailyWageResponse = await axios.get(`http://localhost:5000/api/jobseekers/dailywage-applications/${authuser.seekerId}`);
+          const dailyWageResponse = await axios.get(`__API_URL__/api/jobseekers/dailywage-applications/${authuser.seekerId}`);
           console.log('Daily wage applications response:', dailyWageResponse.data);
           setDailyWageApplications(dailyWageResponse.data.applications || []);
           

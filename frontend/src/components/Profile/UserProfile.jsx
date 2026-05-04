@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { User, Mail, Phone, MapPin, Briefcase, Clock, Upload, Download, Edit, Save, X, CheckCircle } from 'lucide-react';
 import { useAuthstore } from '../../store/useAuthstore';
 import axios from 'axios';
@@ -63,7 +63,7 @@ const UserProfile = () => {
 
   const handleSaveProfile = async () => {
     try {
-      const response = await axios.put(`http://localhost:5000/api/jobseekers/profile/${authuser.seekerId}`, editedProfile);
+      const response = await axios.put(`__API_URL__/api/jobseekers/profile/${authuser.seekerId}`, editedProfile);
       
       if (response.status === 200) {
         const updatedUser = { ...authuser, ...editedProfile };
@@ -98,7 +98,7 @@ const UserProfile = () => {
 
     try {
       const response = await axios.post(
-        `http://localhost:5000/api/jobseekers/upload-resume/${authuser.seekerId}`, 
+        `__API_URL__/api/jobseekers/upload-resume/${authuser.seekerId}`, 
         formData,
         {
           headers: {

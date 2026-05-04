@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Search, MapPin, Bookmark, ChevronDown, ChevronLeft, ChevronRight, Briefcase, Clock, DollarSign, Calendar, Tag, Filter, Building, Zap, FileText, CheckCircle } from 'lucide-react';
 import { useAuthstore } from '../../store/useAuthstore';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -107,7 +107,7 @@ const FindJobsPage = () => {
     const status = 'pending';
 
     try {
-      const res = await axios.post('http://localhost:5000/api/jobseekers/apply', {
+      const res = await axios.post('__API_URL__/api/jobseekers/apply', {
         jobid,
         providerId,
         seekerId,
@@ -149,7 +149,7 @@ const FindJobsPage = () => {
         // Use ML recommendation service for intelligent search
         console.log('Using ML search with:', { title: searchTerm, city: location });
         try {
-          const res = await axios.post('http://localhost:5000/', {
+          const res = await axios.post('__API_URL__/', {
             title: searchTerm || "job",
             city: location || "Mumbai",
             salary: 0,
@@ -179,7 +179,7 @@ const FindJobsPage = () => {
         params.append('page', page.toString());
         params.append('limit', jobsPerPage.toString());
         
-        const res = await axios.get(`http://localhost:5000/api/jobs/all?${params.toString()}`);
+        const res = await axios.get(`__API_URL__/api/jobs/all?${params.toString()}`);
         setJobs(res.data.jobs || []);
         setTotalPages(res.data.totalPages || 1);
         setCurrentPage(parseInt(res.data.currentPage) || page);
@@ -191,7 +191,7 @@ const FindJobsPage = () => {
         params.append('limit', jobsPerPage.toString());
         params.append('language', selang);
         
-        const res = await axios.get(`http://localhost:5000/api/jobs/all?${params.toString()}`);
+        const res = await axios.get(`__API_URL__/api/jobs/all?${params.toString()}`);
         console.log('All jobs response:', res.data);
         
         const allJobs = res.data.jobs || [];
@@ -213,7 +213,7 @@ const FindJobsPage = () => {
         params.append('page', '1');
         params.append('limit', jobsPerPage.toString());
         params.append('language', selang);
-        const res = await axios.get(`http://localhost:5000/api/jobs/all?${params.toString()}`);
+        const res = await axios.get(`__API_URL__/api/jobs/all?${params.toString()}`);
         console.log('Fallback response:', res.data);
         setJobs(res.data.jobs || []);
         setTotalPages(res.data.totalPages || 1);
@@ -236,7 +236,7 @@ const FindJobsPage = () => {
       params.append('page', page.toString());
       params.append('limit', jobsPerPage.toString());
       
-      const res = await axios.get(`http://localhost:5000/api/jobs/all?${params.toString()}`);
+      const res = await axios.get(`__API_URL__/api/jobs/all?${params.toString()}`);
       setJobs(res.data.jobs || []);
       setTotalPages(res.data.totalPages || 1);
       setCurrentPage(parseInt(res.data.currentPage) || page);
@@ -269,7 +269,7 @@ const FindJobsPage = () => {
       // Set loading state to true
       setIsAiSearchLoading(true);
       
-      const res = await axios.post(`http://localhost:5000/api/jobseekers/recommendation_by_text`, {
+      const res = await axios.post(`__API_URL__/api/jobseekers/recommendation_by_text`, {
         textosend,
         language: selang,
         limit: jobsPerPage.toString(),

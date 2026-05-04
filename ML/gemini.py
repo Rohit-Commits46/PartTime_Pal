@@ -1,7 +1,8 @@
 import google.generativeai as genai
 import json
+import os
 # Configure Gemini
-genai.configure(api_key="AIzaSyDR0RRjmj5xaGnzbTOnhJzDu_NT9HN1l2o")
+genai.configure(api_key=os.environ.get("GEMINI_API_KEY", "AIzaSyDR0RRjmj5xaGnzbTOnhJzDu_NT9HN1l2o"))
 #model = genai.GenerativeModel("gemini-pro")
 
 # List of job fields

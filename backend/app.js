@@ -13,10 +13,12 @@ const acceptroute=require("./routes/acceptroutes.js")
 const messageroutes = require('./routes/messageroutes');
 // const postjobroutes = require('./routes/postjobroutes');
 const { app, server } = require('./lib/socketio'); // Assuming socketio.js uses CommonJS too
-// const seekerRoute =require("./routes/seeker")
+
+const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
+
 // ✅ Fix: Proper CORS Configuration
 app.use(cors({ 
-    origin: "http://localhost:5173", // Allow frontend origin
+    origin: FRONTEND_URL, // Allow frontend origin
     credentials: true, // Allow cookies/sessions
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
@@ -45,9 +47,10 @@ app.use("/api/jobs", postjobroutes); // Add jobs route for finding jobs
 app.use("/api/accept", acceptroute);
 
 
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 
 // ✅ Ensure DB Connection Before Starting Server
     server.listen(PORT, () => {
-        console.log(`✅ Server running on http://localhost:${PORT}`);
+        console.log(`✅ Server running on port ${PORT}`);
     });
+

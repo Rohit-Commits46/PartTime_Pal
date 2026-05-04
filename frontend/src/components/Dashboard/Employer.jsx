@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Clock, FileText, MessageSquare, User, Briefcase, CheckCircle, TrendingUp, Users } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuthstore } from '../../store/useAuthstore';
@@ -46,7 +46,7 @@ const RecruiterDashboard = () => {
           setLoading(true);
           console.log('Fetching jobs for recruiter ID:', recruiterId);
           console.log('Full authuser object:', authuser);
-          const response = await axios.get(`http://localhost:5000/api/rec/jobs/${recruiterId}`);
+          const response = await axios.get(`__API_URL__/api/rec/jobs/${recruiterId}`);
           console.log('Jobs response:', response.data);
           console.log('Response data structure:', JSON.stringify(response.data, null, 2));
           
@@ -96,7 +96,7 @@ const RecruiterDashboard = () => {
           
         } catch (error) {
           console.error('Error fetching jobs:', error);
-          console.error('Request URL was:', `http://localhost:5000/api/rec/jobs/${recruiterId}`);
+          console.error('Request URL was:', `__API_URL__/api/rec/jobs/${recruiterId}`);
           setJobs([]);
         } finally {
           setLoading(false);

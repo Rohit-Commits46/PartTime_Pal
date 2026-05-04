@@ -1,4 +1,4 @@
-import  { useState, useEffect } from 'react';
+﻿import  { useState, useEffect } from 'react';
 import { FileText, Star, Briefcase, CheckCircle, TrendingUp, Target, Award, Users, Eye } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthstore } from "../../store/useAuthstore";
@@ -56,7 +56,7 @@ const JobSeekerDashboard = () => {
           })));
         } catch (error) {
           console.error('Error fetching applications:', error);
-          console.error('Request URL was:', `http://localhost:5000/api/jobseekers/applications/${userId}`);
+          console.error('Request URL was:', `__API_URL__/api/jobseekers/applications/${userId}`);
           setApplications([]);
         } finally {
           setLoading(false);

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ChevronDown, ChevronUp, User, Mail, Phone, MapPin, Calendar, FileText, Star, Download, Eye } from 'lucide-react';
 // import { axiosinstance } from '../../lib/axios';
@@ -25,7 +25,7 @@ const JobApplicantionsPage = () => {
         
         // Using axios instance with base URL already configured
         const response = await axios.get(
-        `http://localhost:5000/api/rec/jobs/${recruiterId}`);
+        `__API_URL__/api/rec/jobs/${recruiterId}`);
         console.log(response);
         
         const data = response.data;
@@ -59,7 +59,7 @@ const JobApplicantionsPage = () => {
   // Handle accept application
   const handleAccept = async (jobId, applicantId) => {
     try {
-      const response = await axios.post('http://localhost:5000/api/accept/accept', {
+      const response = await axios.post('__API_URL__/api/accept/accept', {
         jobId: jobId,
         applicantId: applicantId,
         status: 'accepted'
@@ -88,7 +88,7 @@ const JobApplicantionsPage = () => {
   // Handle reject application
   const handleReject = async (jobId, applicantId) => {
     try {
-      const response = await axios.post('http://localhost:5000/api/accept/accept', {
+      const response = await axios.post('__API_URL__/api/accept/accept', {
         jobId: jobId,
         applicantId: applicantId,
         status: 'rejected'

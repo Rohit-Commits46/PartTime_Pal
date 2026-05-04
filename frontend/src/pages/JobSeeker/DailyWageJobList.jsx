@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { MapPin, Briefcase, Calendar, Clock, DollarSign, Users, Tag, Search, Filter, CheckCircle, X } from 'lucide-react';
 import { useAuthstore } from '../../store/useAuthstore';
@@ -22,9 +22,9 @@ const DailyWageJobList = () => {
   useEffect(() => {
     const fetchJobs = async () => {
       try {
-        console.log('Fetching daily wage jobs from: http://localhost:5000/api/jobseekers/dailywagesJobs');
+        console.log('Fetching daily wage jobs from: __API_URL__/api/jobseekers/dailywagesJobs');
         
-        const response = await axios.get('http://localhost:5000/api/jobseekers/dailywagesJobs');
+        const response = await axios.get('__API_URL__/api/jobseekers/dailywagesJobs');
         console.log('Daily wage jobs response:', response.data);
         
         // Handle different response structures
@@ -54,7 +54,7 @@ const DailyWageJobList = () => {
     const fetchAppliedJobs = async () => {
       if (authuser && authuser.seekerId) {
         try {
-          const response = await axios.get(`http://localhost:5000/api/jobseekers/dailywage-applications/${authuser.seekerId}`);
+          const response = await axios.get(`__API_URL__/api/jobseekers/dailywage-applications/${authuser.seekerId}`);
           if (response.data && Array.isArray(response.data.applications)) {
             const appliedJobIds = response.data.applications.map(app => app.jobDetails._id);
             setAppliedJobs(appliedJobIds);
@@ -105,7 +105,7 @@ const DailyWageJobList = () => {
     setApplying(prev => ({ ...prev, [jobId]: true }));
     
     try {
-      const response = await axios.post('http://localhost:5000/api/jobseekers/apply-dailywage', {
+      const response = await axios.post('__API_URL__/api/jobseekers/apply-dailywage', {
         jobId: jobId,
         seekerId: authuser.seekerId,
         status: 'pending'

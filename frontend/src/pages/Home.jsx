@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Search, MapPin, Briefcase, Clock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
@@ -30,7 +30,7 @@ const HomePage = () => {
 
   async function fetchRecommendations() {
     //these are the jobs that are being fetched from the backend
-    const res=await axios.post('http://localhost:5000/',{
+    const res=await axios.post('__API_URL__/',{
       title: searchTerm,
       city: location,
       salary: 0,

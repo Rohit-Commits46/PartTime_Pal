@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 import { Lock, Mail, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 // import axios from "axios";
@@ -40,7 +40,7 @@ const SignupForm = ({ userType, onBack }) => {
       const endpoint = userType === "jobSeeker" ? "/jobseekers/signin" : "/recruiters/signin";
       console.log("Signing up user:", formData, "User Type:", userType);
 
-      const res = await axios.post(`http://localhost:5000/api${endpoint}`, {
+      const res = await axios.post(`__API_URL__/api${endpoint}`, {
         name: formData.firstname + " " + formData.lastname,
         email: formData.email,
         password: formData.password,

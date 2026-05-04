@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { User, Mail, Phone, MapPin, Briefcase, Clock, Download, ArrowLeft, Star, Calendar } from 'lucide-react';
 import axios from 'axios';
@@ -14,7 +14,7 @@ const ViewSeekerProfile = () => {
     const fetchSeekerProfile = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`http://localhost:5000/api/jobseekers/profile/${id}`);
+        const response = await axios.get(`__API_URL__/api/jobseekers/profile/${id}`);
         
         if (response.data.success) {
           setSeekerProfile(response.data.user);
