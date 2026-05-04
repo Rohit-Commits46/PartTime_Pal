@@ -1,0 +1,12 @@
+# Python Environment for ML
+numpy
+pandas
+scikit-learn
+googletrans==4.0.0rc1
+fastapi
+uvicorn
+pydantic
+nltk
+geopy
+sentence-transformers
+google-generativeai

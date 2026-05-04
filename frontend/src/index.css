@@ -1,0 +1,30 @@
+@import "tailwindcss";
+
+/* Light mode only styles */
+body {
+  background-color: #ffffff;
+  color: #111827;
+}
+
+/* Smooth transitions for interactions */
+* {
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+/* Custom scrollbar for light mode */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f3f4f6;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
